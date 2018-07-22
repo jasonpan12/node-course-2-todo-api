@@ -1,4 +1,6 @@
 // const MongoClient = require('mongodb').MongoClient;
+// this is object destructured way to pull off mongoclient and object id
+// object ID constructor function
 const {MongoClient, ObjectID} = require('mongodb');
 
 // var obj = new ObjectID();
@@ -11,13 +13,13 @@ const {MongoClient, ObjectID} = require('mongodb');
 // console.log(name);
 
 // mongo db doesn't need you to create the database first. it'll do it for you. once we actually start adding data.
-MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
+MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) => {
   if (err) {
     return console.log('Unable to connect to MongoDB server');
     // return prevents the rest of the fx from continuing
-  }
+  } // can just leave out else
   console.log('Connected to MongoDB server');
-
+  const db = client.db('TodoApp');
   // db.collection('Todos').insertOne({
   //   text: 'Something to do',
   //   completed: false
@@ -39,8 +41,9 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //   }
   //   console.log(JSON.stringify(result.ops[0]._id.getTimestamp(), undefined, 2));
   // });
+  // result.ops is an array of all documents that have been inserted. Thus, you can filter it..
   // insert new doc into the Users collection
   // Give it a name property, age property, and location string
 
-  db.close();
+  client.close();
 });
