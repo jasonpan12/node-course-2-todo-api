@@ -28,7 +28,7 @@ app.get('/todos', (req, res) => {
     res.send({todos}) // sending an object as todos so i can add more things to the eventual bigger response
   }, (e) => {
     res.status(400).send(e);
-  })
+  });
 });
 
 app.listen(3000, () => {
