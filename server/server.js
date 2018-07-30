@@ -1,12 +1,12 @@
 // server.js should only be responsible for routes
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const {ObjectId} = require('mongodb');
 
-var express = require('express');
-var bodyParser = require('body-parser');
-var {ObjectId} = require('mongodb');
-
-var {mongoose} = require('./db/mongoose');
-var {Todo} = require('./models/todo');
-var {User} = require('./models/user');
+const {mongoose} = require('./db/mongoose');
+const {Todo} = require('./models/todo');
+const {User} = require('./models/user');
 
 var app = express();
 const port = process.env.PORT || 3000 // if process.env.port exists, use it, else 3000
@@ -88,6 +88,35 @@ app.delete('/todos/:id', (req, res) => {
       // if doc returned, send with 200
     //error
       // 400 with empty body
+});
+
+app.patch('/todos/:id', (req,res) => {
+  var id = req.params.id;
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  if (_.isBoolean(body.completed) && body.completed) { // body.completed if is true
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findOneAndUpdate(id, {
+    $set: body // make the body the new body
+  }, {
+    new: true // return the new object
+  }).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  })
 });
 
 app.listen(port, () => {
