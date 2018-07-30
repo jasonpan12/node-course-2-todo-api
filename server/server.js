@@ -40,9 +40,7 @@ app.get('/rorrie', (req, res) => {
 });
 
 app.get('/bofa', (req, res) => {
-  res.send({
-    bofa: "deez nuts"
-  });
+  res.send("\n bofa deez NUTZ in ur mouth \n");
 });
 
 //get /todos/todoid
