@@ -39,6 +39,12 @@ app.get('/rorrie', (req, res) => {
 )
 });
 
+app.get('/bofa', (req, res) => {
+  res.send({
+    bofa: "deez nuts"
+  });
+});
+
 //get /todos/todoid
 app.get('/todos/:id', (req, res) => {
   // res.send(req.params);
