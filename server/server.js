@@ -1,3 +1,6 @@
+// load config
+require('./config/config');
+
 // server.js should only be responsible for routes
 const _ = require('lodash');
 const express = require('express');
@@ -9,7 +12,7 @@ const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
 
 var app = express();
-const port = process.env.PORT || 3000 // if process.env.port exists, use it, else 3000
+const port = process.env.PORT
 
 app.use(bodyParser.json());
 
