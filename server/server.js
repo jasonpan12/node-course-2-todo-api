@@ -13,6 +13,7 @@ const {mongoose} = require('./db/mongoose');
 // Load object models.
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 // Set up express server
 var app = express();
@@ -129,6 +130,10 @@ app.patch('/todos/:id', (req,res) => {
   }).catch((e) => {
     res.status(400).send();
   })
+});
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user); // req.user is created by the authenticate function
 });
 
 // Easter Eggs
