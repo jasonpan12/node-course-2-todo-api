@@ -7,7 +7,7 @@ require('./config/config');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
-const {ObjectId} = require('mongodb');
+const {ObjectId} = require('mongodb'); // Object destructuring, handy for module exports
 const {mongoose} = require('./db/mongoose');
 
 // Load object models.
@@ -20,6 +20,20 @@ const port = process.env.PORT;
 
 // Tell the server that I want JSON to be used
 app.use(bodyParser.json());
+
+// POST /users
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+      res.status(400).send(e);
+    });
+});
 
 // POST Todos route
 app.post('/todos', (req, res) => {
