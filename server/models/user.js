@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -74,6 +75,26 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth'
   });
 }
+
+// middleware to hash passwrod before a save
+UserSchema.pre('save', function(next) {
+  var user = this;
+
+  // only encrypt password if it was modified to avoid double encrypting on 2nd update
+  if (user.isModified('password')) {
+
+    // generate hashed and salted password. Password is already verified by the time save is called
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('User', UserSchema);
 
