@@ -27,13 +27,31 @@ app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
 
-  user.save().then(() => {
+  user.save().then(() => { // there is a pre middleware function to validate user
     return user.generateAuthToken();
   }).then((token) => {
     res.header('x-auth', token).send(user);
   }).catch((e) => {
       res.status(400).send(e);
     });
+});
+
+// POST /users/login
+// pass email, login, match email and match login
+app.post('/users/login', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var {email} = body;
+
+  User.findByCredentials(body.email, body.password).then((user) => { // findByCredentials does the validation
+
+    return user.generateAuthToken().then((token) => { // user return to keep chain alive
+      res.header('x-auth', token).send(user);
+    });
+
+  }).catch((e) => {
+    res.status(400).send();
+  });
+
 });
 
 // POST Todos route
