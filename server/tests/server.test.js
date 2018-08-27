@@ -228,7 +228,7 @@ describe('POST /users', () => {
           expect(user).toExist(); // expect user to be found in db
           expect(user.password).toNotBe(password); // expect hashed password toNotBe unhashed pw
           done();
-        })
+        }).catch((e) => done(e)); // get error message
       });
   });
 
@@ -253,4 +253,59 @@ describe('POST /users', () => {
       .expect(400)
       .end(done);
   });
-})
+});
+
+describe('POST /users/login', () => {
+  it('should login user and return auth token', (done) => {
+    // make the request
+    request(app)
+    .post('/users/login')
+    .send({
+      email: users[1].email,
+      password: users[1].password
+    })
+    .expect(200) // expect it to work, and then
+    .expect((res) => { // expect an x-auth header to exist.
+      expect(res.headers['x-auth']).toExist();
+    }).end((err, res) => { // if both above check out, then end the request, and do something with the response
+
+      // always start by handling an error
+      if (err) {
+        return done(err);
+      }
+
+      // then with the response, do a db lookup to compare
+      User.findById(users[1]._id).then((user) => {
+        expect(user.tokens[0]).toInclude({
+          access: 'auth',
+          token: res.headers['x-auth'] // expect token from db lookup to include the token from response
+        });
+        done();
+      }).catch((e) => done(e)); // get error messages from db lookup or comparison
+
+    });
+  });
+
+  it('should reject invalid login', (done) => {
+    request(app)
+    .post('/users/login')
+    .send({
+      email: users[1].email,
+      password: 'badPassword'
+    })
+    .expect(400)
+    .expect((res) => {
+      expect(res.headers['x-auth']).toNotExist();
+    })
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      User.findById(users[1]._id).then((user) => {
+        expect(user.tokens.length).toBe(0);
+        done();
+      }).catch((e) => done(e));
+    });
+  });
+});

@@ -54,6 +54,16 @@ app.post('/users/login', (req, res) => {
 
 });
 
+// DELETE token for current user
+app.delete('/users/me/token', authenticate, (req, res) => {
+  // by authenticating user, we get access to req headers
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send();
+  }, () => {
+    res.status(400).send();
+  });
+});
+
 // POST Todos route
 app.post('/todos', (req, res) => {
   var todo = new Todo({

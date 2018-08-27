@@ -52,7 +52,19 @@ UserSchema.methods.generateAuthToken = function () {
   return user.save().then(() => {
     return token;
   });
-}
+};
+
+UserSchema.methods.removeToken = function token(token) {
+  var user = this;
+
+  return user.update({ // return allows promise to continue
+    $pull: {
+      tokens: {
+        token// pull anything where token = token
+      }
+    }
+  });
+};
 
 // statics is model method
 UserSchema.statics.findByToken = function (token) {
