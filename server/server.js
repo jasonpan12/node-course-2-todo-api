@@ -65,9 +65,10 @@ app.delete('/users/me/token', authenticate, (req, res) => {
 });
 
 // POST Todos route
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   var todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   // Functions called on Todo are from Mongoose driver
@@ -79,8 +80,10 @@ app.post('/todos', (req, res) => {
 });
 
 // GET Todos
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos)=> {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id // find todos by user
+  }).then((todos)=> {
     // response sends an object with todo as the lone field, so that more fields can be added
     res.send({todos})
   }, (e) => {
@@ -89,7 +92,7 @@ app.get('/todos', (req, res) => {
 });
 
 // GET todos/todoId
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   // Parse ID query parameter
   var id = req.params.id;
 
@@ -99,7 +102,10 @@ app.get('/todos/:id', (req, res) => {
   }
 
   // See if object Id exists
-  Todo.findById(id).then((Todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((Todo) => {
     if(!Todo) {
       res.status(404).send();
     }
@@ -108,7 +114,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // DELETE todos
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
 
   if (!ObjectId.isValid(id)) {
@@ -116,7 +122,10 @@ app.delete('/todos/:id', (req, res) => {
   }
 
   // Tell mongo that the incoming data is already an ID
-  Todo.findByIdAndRemove({_id: id}).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) { // if todo does NOT exist, because nothing was found
       res.status(404).send();
     }
@@ -125,7 +134,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // PATCH Todos
-app.patch('/todos/:id', (req,res) => {
+app.patch('/todos/:id', authenticate, (req,res) => {
   var id = req.params.id;
 
   // Only accept specific parameters with lodash
@@ -146,7 +155,10 @@ app.patch('/todos/:id', (req,res) => {
   }
 
   // Actually modify the object
-  Todo.findOneAndUpdate(id, {
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id 
+  }, {
     $set: body // make the body the new body
   }, {
     new: true // return the new object
