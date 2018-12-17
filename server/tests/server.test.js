@@ -127,7 +127,7 @@ describe('DELETE /todos/:id', () => {
         }
 
         Todo.findById(hexId).then((todos) => {
-          expect(todos).toNotExist();
+          expect(todos).toBeFalsy();
           done();
         }).catch((e) => done(e));
       })
@@ -146,7 +146,7 @@ describe('DELETE /todos/:id', () => {
         }
 
         Todo.findById(hexId).then((todos) => {
-          expect(todos).toExist(); // should still exist after attempt to delete
+          expect(todos).toBeTruthy(); // should still exist after attempt to delete
           done();
         }).catch((e) => done(e));
       })
@@ -189,7 +189,8 @@ describe('PATCH /todos/:id', () => {
       .expect((res) => {
         expect(res.body.todo.text).toBe(text);
         expect(res.body.todo.completed).toBe(true);
-        expect(res.body.todo.completedAt).toBeA('number');
+        // expect(res.body.todo.completedAt).toBeA('number');
+        expect(typeof res.body.todo.completedAt).toBe('number');
       })
       .end(done)
   });
@@ -212,7 +213,7 @@ describe('PATCH /todos/:id', () => {
   it('should clear completedAt when todo is not completed', (done) => {
     // grab id of second todo item, set completed to false, 200, response body is same
     // completed is false
-    // completedAt is null .toNotExist
+    // completedAt is null .toBeFalsy
     var hexId = todos[1]._id.toHexString(); // 2nd todo, so use user 2's token
     var text = 'This should be the new text';
 
@@ -268,8 +269,8 @@ describe('POST /users', () => {
       .send({email, password})
       .expect(200)
       .expect((res) => { // must use bracket because of dash
-        expect(res.headers['x-auth']).toExist(); // expect x-auth header to be present
-        expect(res.body._id).toExist(); // expect a user Id to be returned
+        expect(res.headers['x-auth']).toBeTruthy(); // expect x-auth header to be present
+        expect(res.body._id).toBeTruthy(); // expect a user Id to be returned
         expect(res.body.email).toBe(email); // expect email to be returned
       })
       .end((err) => {
@@ -278,8 +279,8 @@ describe('POST /users', () => {
         }
 
         User.findOne({email}).then((user) => {
-          expect(user).toExist(); // expect user to be found in db
-          expect(user.password).toNotBe(password); // expect hashed password toNotBe unhashed pw
+          expect(user).toBeTruthy(); // expect user to be found in db
+          expect(user.password).not.toBe(password); // expect hashed password toNotBe unhashed pw
           done();
         }).catch((e) => done(e)); // get error message
       });
@@ -319,7 +320,7 @@ describe('POST /users/login', () => {
     })
     .expect(200) // expect it to work, and then
     .expect((res) => { // expect an x-auth header to exist.
-      expect(res.headers['x-auth']).toExist();
+      expect(res.headers['x-auth']).toBeTruthy();
     }).end((err, res) => { // if both above check out, then end the request, and do something with the response
 
       // always start by handling an error
@@ -329,7 +330,7 @@ describe('POST /users/login', () => {
 
       // then with the response, do a db lookup to compare
       User.findById(users[1]._id).then((user) => {
-        expect(user.tokens[1]).toInclude({
+        expect(user.toObject().tokens[1]).toMatchObject({ // the found user should match the request's token
           access: 'auth',
           token: res.headers['x-auth'] // expect token from db lookup to include the token from response
         });
@@ -348,7 +349,7 @@ describe('POST /users/login', () => {
     })
     .expect(400)
     .expect((res) => {
-      expect(res.headers['x-auth']).toNotExist();
+      expect(res.headers['x-auth']).toBeFalsy();
     })
     .end((err, res) => {
       if (err) {

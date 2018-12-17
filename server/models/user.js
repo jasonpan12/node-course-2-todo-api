@@ -26,10 +26,10 @@ var UserSchema = new mongoose.Schema({
       type: String,
       required: true
     },
-    token: [{
+    token: {
       type: String,
       required: true
-    }]
+    }
   }]
 });
 
